@@ -792,7 +792,7 @@
         <p class="eyebrow">PERSONAL SPOTIFY RADIO</p>
         <h2>Six stations built from what you actually play.</h2>
         <p>
-          Connect Spotify to create a monthly Top 25 station and five genre stations
+          Connect Spotify to create a monthly Top 50 station and five genre stations
           using your own top tracks. Nothing requires a pasted access token.
         </p>
         <label style="display:block;max-width:560px;margin:0 0 14px;">
@@ -841,7 +841,7 @@
           <div class="station-heading">
             <div>
               <p class="eyebrow">NOW TUNED TO</p>
-              <h2 id="activeStationName">Monthly Top 25</h2>
+              <h2 id="activeStationName">Monthly Top 50</h2>
               <p id="activeStationDescription">Your top tracks from approximately the last four weeks.</p>
             </div>
 
@@ -959,6 +959,7 @@
       "user-read-private",
       "user-read-email",
       "user-top-read",
+      "user-library-read",
       "user-read-playback-state",
       "user-modify-playback-state",
       "streaming",
@@ -1003,7 +1004,7 @@
     const STATION_DEFINITIONS = [
       {
         id: "monthly",
-        name: "Monthly Top 25",
+        name: "Monthly Top 50",
         shortName: "Monthly",
         description: "Your top tracks from approximately the last four weeks."
       },
@@ -1457,9 +1458,27 @@
 
     async function fetchTopTracks(timeRange, limit = 50) {
       const data = await spotifyApi(
-        `me/top/tracks?time_range=${encodeURIComponent(timeRange)}&limit=${limit}`
+        `me/top/tracks?time_range=${encodeURIComponent(timeRange)}&limit=${Math.min(limit, 50)}`
       );
       return data.items || [];
+    }
+
+    async function fetchSavedTracks(maxTracks = 250) {
+      const tracks = [];
+      let offset = 0;
+      const pageSize = 50;
+
+      while (tracks.length < maxTracks) {
+        const data = await spotifyApi(
+          `me/tracks?limit=${pageSize}&offset=${offset}`
+        );
+        const items = data?.items || [];
+        tracks.push(...items.map((item) => item.track).filter(Boolean));
+        if (items.length < pageSize || !data?.next) break;
+        offset += pageSize;
+      }
+
+      return tracks.slice(0, maxTracks);
     }
 
     async function loadProfile() {
@@ -1485,23 +1504,25 @@
 
     async function buildStations() {
       const buildVersion = ++state.stationBuildVersion;
-      setLoading(true, "Reading your top tracks…");
+      setLoading(true, "Reading your top and saved tracks…");
       clearStatus();
 
       try {
-        const [shortTerm, mediumTerm, longTerm] = await Promise.all([
+        const [shortTerm, mediumTerm, longTerm, savedTracks] = await Promise.all([
           fetchTopTracks("short_term", 50),
           fetchTopTracks("medium_term", 50),
-          fetchTopTracks("long_term", 50)
+          fetchTopTracks("long_term", 50),
+          fetchSavedTracks(250)
         ]);
 
         if (buildVersion !== state.stationBuildVersion) return;
 
-        const monthly = uniqueTracks(shortTerm).slice(0, 25);
+        const monthly = uniqueTracks(shortTerm).slice(0, 50);
         const combined = uniqueTracks([
           ...shortTerm,
           ...mediumTerm,
-          ...longTerm
+          ...longTerm,
+          ...savedTracks
         ]);
 
         setLoading(true, "Sorting tracks into stations…");
@@ -1532,11 +1553,11 @@
 
         state.stations = {
           monthly,
-          rap: genreStations.rap.slice(0, 50),
-          alternative: genreStations.alternative.slice(0, 50),
-          soul: genreStations.soul.slice(0, 50),
-          skate: uniqueTracks(skate).slice(0, 50),
-          wildcard: genreStations.wildcard.slice(0, 50)
+          rap: genreStations.rap.slice(0, 150),
+          alternative: genreStations.alternative.slice(0, 150),
+          soul: genreStations.soul.slice(0, 150),
+          skate: uniqueTracks(skate).slice(0, 150),
+          wildcard: genreStations.wildcard.slice(0, 150)
         };
 
         /*
@@ -1560,7 +1581,7 @@
             state.stations[stationId] = uniqueTracks([
               ...state.stations[stationId],
               ...fillers
-            ]).slice(0, 25);
+            ]).slice(0, 75);
           }
         }
 
