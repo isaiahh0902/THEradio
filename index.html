@@ -765,16 +765,22 @@
           Connect Spotify to create a monthly Top 25 station and four genre stations
           using your own top tracks. Nothing requires a pasted access token.
         </p>
+        <label style="display:block;max-width:560px;margin:0 0 14px;">
+          <span style="display:block;margin-bottom:7px;font-weight:750;">Spotify Client ID</span>
+          <input id="clientIdInput" type="text" autocomplete="off" spellcheck="false"
+            placeholder="Paste the Client ID from your Spotify app"
+            style="width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel-2);color:var(--text);" />
+        </label>
         <button class="button primary" id="loginButton" type="button">
-          Connect Spotify
+          Save Client ID & Connect
         </button>
       </div>
 
       <aside class="setup-card">
         <h3>Before you connect</h3>
         <ol>
-          <li>Put your Spotify Client ID into <code>CLIENT_ID</code>.</li>
-          <li>Add this exact page URL as a Spotify Redirect URI.</li>
+          <li>Paste your Spotify Client ID into the box on this page.</li>
+          <li>Add <code>https://isaiahh0902.github.io/THEradio/</code> as a Spotify Redirect URI.</li>
           <li>Serve the file through GitHub Pages or localhost—not <code>file://</code>.</li>
           <li>Spotify Premium is required for playback inside the browser.</li>
         </ol>
@@ -918,15 +924,18 @@
       including trailing slash and capitalization.
     */
 
-    const CLIENT_ID = "PASTE_YOUR_SPOTIFY_CLIENT_ID_HERE";
+    const CLIENT_ID_STORAGE_KEY = "ih_radio_client_id";
+    let CLIENT_ID = localStorage.getItem(CLIENT_ID_STORAGE_KEY) || "";
 
     /*
       By default the app uses the current page, without query parameters.
       This makes it work on GitHub Pages as long as the exact page URL is
       registered in Spotify's dashboard.
     */
-    const REDIRECT_URI =
-      window.location.origin + window.location.pathname;
+    const REDIRECT_URI = (() => {
+      const normalizedPath = window.location.pathname.replace(/index\.html$/i, "");
+      return window.location.origin + normalizedPath;
+    })();
 
     const SCOPES = [
       "user-read-private",
@@ -959,6 +968,13 @@
         "r&b", "rnb", "soul", "neo soul", "neo-soul", "funk",
         "jazz", "quiet storm", "contemporary r&b"
       ]
+    };
+
+
+    const ARTIST_STATION_HINTS = {
+      rap: ["kendrick lamar", "tyler, the creator", "jid", "baby keem", "lil yachty", "joey valence & brae", "a$ap rocky", "earl sweatshirt", "j. cole", "kevin abstract"],
+      alternative: ["dominic fike", "paramore", "good kid", "beabadoobee", "mk.gee", "d4vd", "matt champion", "frank ocean"],
+      soul: ["daniel caesar", "raye", "malcolm todd", "laufey", "dijon", "anderson .paak"]
     };
 
     const STATION_DEFINITIONS = [
@@ -1014,6 +1030,7 @@
       loginPanel: document.getElementById("loginPanel"),
       radioApp: document.getElementById("radioApp"),
       loginButton: document.getElementById("loginButton"),
+      clientIdInput: document.getElementById("clientIdInput"),
       logoutButton: document.getElementById("logoutButton"),
       refreshButton: document.getElementById("refreshButton"),
       statusBanner: document.getElementById("statusBanner"),
@@ -1070,11 +1087,10 @@
     function validateClientId() {
       if (
         !CLIENT_ID ||
-        CLIENT_ID === "PASTE_YOUR_SPOTIFY_CLIENT_ID_HERE" ||
         CLIENT_ID.length < 10
       ) {
         throw new Error(
-          "Add your Spotify Client ID to the CLIENT_ID constant near the bottom of the HTML file."
+          "Paste your Spotify Client ID into the box, then connect."
         );
       }
     }
@@ -1104,6 +1120,11 @@
       clearStatus();
 
       try {
+        const enteredClientId = elements.clientIdInput?.value.trim();
+        if (enteredClientId) {
+          CLIENT_ID = enteredClientId;
+          localStorage.setItem(CLIENT_ID_STORAGE_KEY, CLIENT_ID);
+        }
         validateClientId();
 
         if (window.location.protocol === "file:") {
@@ -1353,20 +1374,26 @@
       ];
 
       const genreMap = new Map();
+      const workers = 5;
+      let cursor = 0;
 
-      for (const ids of chunk(artistIds, 50)) {
-        const data = await spotifyApi(
-          `artists?ids=${encodeURIComponent(ids.join(","))}`
-        );
-
-        for (const artist of data.artists || []) {
-          genreMap.set(
-            artist.id,
-            (artist.genres || []).map((genre) => genre.toLowerCase())
-          );
+      async function worker() {
+        while (cursor < artistIds.length) {
+          const artistId = artistIds[cursor++];
+          try {
+            const artist = await spotifyApi(`artists/${encodeURIComponent(artistId)}`);
+            genreMap.set(
+              artistId,
+              (artist?.genres || []).map((genre) => genre.toLowerCase())
+            );
+          } catch (error) {
+            console.warn(`Artist lookup failed for ${artistId}:`, error.message);
+            genreMap.set(artistId, []);
+          }
         }
       }
 
+      await Promise.all(Array.from({ length: workers }, worker));
       return genreMap;
     }
 
@@ -1388,10 +1415,11 @@
 
     function classifyTrack(track, genreMap) {
       const genres = trackGenres(track, genreMap);
+      const artistNames = (track.artists || []).map((artist) => (artist.name || "").toLowerCase());
 
-      if (matchesAnyGenre(genres, GENRE_RULES.rap)) return "rap";
-      if (matchesAnyGenre(genres, GENRE_RULES.soul)) return "soul";
-      if (matchesAnyGenre(genres, GENRE_RULES.alternative)) return "alternative";
+      if (matchesAnyGenre(genres, GENRE_RULES.rap) || artistNames.some((name) => ARTIST_STATION_HINTS.rap.includes(name))) return "rap";
+      if (matchesAnyGenre(genres, GENRE_RULES.soul) || artistNames.some((name) => ARTIST_STATION_HINTS.soul.includes(name))) return "soul";
+      if (matchesAnyGenre(genres, GENRE_RULES.alternative) || artistNames.some((name) => ARTIST_STATION_HINTS.alternative.includes(name))) return "alternative";
 
       return "wildcard";
     }
@@ -2102,6 +2130,7 @@
 
     async function initializeApp() {
       bindEvents();
+      if (elements.clientIdInput) elements.clientIdInput.value = CLIENT_ID;
       renderStations();
 
       try {
