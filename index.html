@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -309,6 +308,27 @@
       background:
         linear-gradient(145deg, rgba(255, 207, 51, 0.16), transparent 75%),
         var(--panel);
+    }
+
+    .station-card .station-frequency {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--accent);
+      font-size: 1.25rem;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .station-card .station-call-sign {
+      display: inline-block;
+      margin-top: 9px;
+      padding: 4px 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .65rem;
+      font-weight: 850;
+      letter-spacing: .12em;
     }
 
     .station-card .number {
@@ -977,67 +997,45 @@
     const GENRE_RULES = {
       rap: [
         "hip hop", "hip-hop", "rap", "trap", "drill", "grime",
-        "boom bap", "cloud rap", "gangster rap", "conscious hip hop"
+        "boom bap", "cloud rap", "gangster rap", "conscious hip hop",
+        "alternative hip hop", "experimental hip hop", "southern hip hop"
       ],
       alternative: [
-        "alternative", "indie", "rock", "punk", "emo", "pop rock",
-        "indie pop", "bedroom pop", "new wave", "shoegaze"
+        "alternative", "indie rock", "indie pop", "rock", "emo",
+        "pop rock", "bedroom pop", "new wave", "shoegaze", "dream pop",
+        "art rock", "garage rock", "post-punk"
       ],
       soul: [
-        "r&b", "rnb", "soul", "neo soul", "neo-soul", "funk",
-        "jazz", "quiet storm", "contemporary r&b"
+        "r&b", "rnb", "soul", "neo soul", "neo-soul", "quiet storm",
+        "contemporary r&b", "alternative r&b", "jazz", "funk", "singer-songwriter"
       ],
       skate: [
         "skate punk", "punk", "pop punk", "hardcore", "garage rock",
-        "alternative hip hop", "rap rock", "indie rock", "surf punk"
+        "rap rock", "surf punk", "post-hardcore", "alternative hip hop",
+        "punk rap", "indie rock"
+      ],
+      pop: [
+        "pop", "dance pop", "electropop", "art pop", "indie pop",
+        "synthpop", "hyperpop", "teen pop", "alt z", "viral pop",
+        "pop soul", "chamber pop"
       ]
     };
 
-
     const ARTIST_STATION_HINTS = {
-      rap: ["kendrick lamar", "tyler, the creator", "jid", "baby keem", "lil yachty", "joey valence & brae", "a$ap rocky", "earl sweatshirt", "j. cole", "kevin abstract"],
-      alternative: ["dominic fike", "paramore", "good kid", "beabadoobee", "mk.gee", "d4vd", "matt champion", "frank ocean"],
-      soul: ["daniel caesar", "raye", "malcolm todd", "laufey", "dijon", "anderson .paak"],
-      skate: ["tyler, the creator", "earl sweatshirt", "lil yachty", "dominic fike", "paramore", "good kid", "joey valence & brae", "turnstile", "the garden", "n.e.r.d.", "beastie boys"]
+      rap: ["kendrick lamar", "jid", "baby keem", "a$ap rocky", "earl sweatshirt", "j. cole", "kevin abstract", "lil yachty", "tyler, the creator", "joey valence & brae"],
+      alternative: ["dominic fike", "paramore", "good kid", "beabadoobee", "mk.gee", "d4vd", "matt champion", "frank ocean", "the garden", "turnstile"],
+      soul: ["daniel caesar", "raye", "malcolm todd", "laufey", "dijon", "anderson .paak", "frank ocean"],
+      skate: ["earl sweatshirt", "lil yachty", "dominic fike", "paramore", "good kid", "joey valence & brae", "turnstile", "the garden", "n.e.r.d.", "beastie boys", "tyler, the creator"],
+      pop: ["laufey", "beabadoobee", "raye", "paramore", "d4vd", "malcolm todd", "frank ocean"]
     };
 
     const STATION_DEFINITIONS = [
-      {
-        id: "monthly",
-        name: "Monthly Top 50",
-        shortName: "Monthly",
-        description: "Your top tracks from approximately the last four weeks."
-      },
-      {
-        id: "rap",
-        name: "Rap Radio",
-        shortName: "Rap",
-        description: "Rap, hip-hop, trap and adjacent sounds from your top tracks."
-      },
-      {
-        id: "alternative",
-        name: "Alternative Radio",
-        shortName: "Alternative",
-        description: "Alternative, indie, rock and pop-rock from your listening."
-      },
-      {
-        id: "soul",
-        name: "R&B / Soul Radio",
-        shortName: "R&B / Soul",
-        description: "R&B, soul, neo-soul, jazz and smoother cuts."
-      },
-      {
-        id: "skate",
-        name: "Skate Radio",
-        shortName: "Skate",
-        description: "Punk, alternative rap, garage rock and anything built for moving fast."
-      },
-      {
-        id: "wildcard",
-        name: "Wildcard Radio",
-        shortName: "Wildcard",
-        description: "Everything that refuses to fit cleanly into the other stations."
-      }
+      { id: "monthly", name: "The Heat Check", shortName: "Heat Check", frequency: "90.2", callSign: "IHT-25", slogan: "Your month, in rotation.", description: "Your most-played tracks from approximately the last four weeks." },
+      { id: "rap", name: "The Cipher", shortName: "Cipher", frequency: "93.7", callSign: "IH-RAP", slogan: "Bars first. Everything else second.", description: "Rap, hip-hop, trap and experimental cuts from your listening." },
+      { id: "alternative", name: "Left of Center", shortName: "Left of Center", frequency: "96.4", callSign: "IH-ALT", slogan: "The guitars are allowed to be weird.", description: "Alternative, indie, rock, emo and adjacent sounds." },
+      { id: "soul", name: "Afterglow", shortName: "Afterglow", frequency: "101.1", callSign: "IH-SOUL", slogan: "Slow down. Stay awhile.", description: "R&B, soul, jazz, neo-soul and smoother records." },
+      { id: "skate", name: "Kickflip FM", shortName: "Kickflip FM", frequency: "104.5", callSign: "IH-SK8", slogan: "No helmets. Better music.", description: "Punk, garage rock, alternative rap and high-motion music." },
+      { id: "pop", name: "Neon Pop", shortName: "Neon Pop", frequency: "107.9", callSign: "IH-POP", slogan: "Hooks with absolutely no shame.", description: "Pop, art-pop, dance-pop and bright crossover tracks." }
     ];
 
     const state = {
@@ -1445,15 +1443,39 @@
       );
     }
 
-    function classifyTrack(track, genreMap) {
+    function stationScore(track, genreMap, stationId) {
       const genres = trackGenres(track, genreMap);
-      const artistNames = (track.artists || []).map((artist) => (artist.name || "").toLowerCase());
+      const artists = (track.artists || []).map((artist) => (artist.name || "").toLowerCase());
+      let score = 0;
 
-      if (matchesAnyGenre(genres, GENRE_RULES.rap) || artistNames.some((name) => ARTIST_STATION_HINTS.rap.includes(name))) return "rap";
-      if (matchesAnyGenre(genres, GENRE_RULES.soul) || artistNames.some((name) => ARTIST_STATION_HINTS.soul.includes(name))) return "soul";
-      if (matchesAnyGenre(genres, GENRE_RULES.alternative) || artistNames.some((name) => ARTIST_STATION_HINTS.alternative.includes(name))) return "alternative";
+      for (const genre of genres) {
+        for (const term of GENRE_RULES[stationId] || []) {
+          if (genre === term) score += 5;
+          else if (genre.includes(term) || term.includes(genre)) score += 2;
+        }
+      }
 
-      return "wildcard";
+      if (artists.some((name) => (ARTIST_STATION_HINTS[stationId] || []).includes(name))) score += 6;
+
+      // Keep broad labels from swallowing more specific stations.
+      if (stationId === "pop" && genres.some((g) => /hip hop|rap|punk|hardcore/.test(g))) score -= 4;
+      if (stationId === "alternative" && genres.some((g) => /contemporary r&b|neo soul|trap|drill/.test(g))) score -= 3;
+      if (stationId === "soul" && genres.some((g) => /punk|hardcore|metal/.test(g))) score -= 5;
+      if (stationId === "skate" && genres.some((g) => /quiet storm|chamber pop|jazz standards/.test(g))) score -= 4;
+
+      return score;
+    }
+
+    function rankForStation(tracks, genreMap, stationId) {
+      return tracks
+        .map((track, affinityIndex) => ({
+          track,
+          affinityIndex,
+          score: stationScore(track, genreMap, stationId)
+        }))
+        .filter((item) => item.score >= 2)
+        .sort((a, b) => b.score - a.score || a.affinityIndex - b.affinityIndex)
+        .map((item) => item.track);
     }
 
     async function fetchTopTracks(timeRange, limit = 50) {
@@ -1528,60 +1550,30 @@
         setLoading(true, "Sorting tracks into stations…");
         const genreMap = await fetchArtistGenreMap(combined);
 
-        const genreStations = {
-          rap: [],
-          alternative: [],
-          soul: [],
-          wildcard: []
-        };
-
-        for (const track of combined) {
-          genreStations[classifyTrack(track, genreMap)].push(track);
-        }
-
-        /*
-          Keep each genre station reasonably radio-sized.
-          Their order still follows your Spotify affinity because the source
-          lists are combined in short-, medium-, then long-term order.
-        */
-        const skate = combined.filter((track) => {
-          const genres = trackGenres(track, genreMap);
-          const artistNames = (track.artists || []).map((artist) => (artist.name || "").toLowerCase());
-          return matchesAnyGenre(genres, GENRE_RULES.skate) ||
-            artistNames.some((name) => ARTIST_STATION_HINTS.skate.includes(name));
-        });
+        const stationIds = ["rap", "alternative", "soul", "skate", "pop"];
+        const rankedStations = Object.fromEntries(
+          stationIds.map((stationId) => [
+            stationId,
+            uniqueTracks(rankForStation(combined, genreMap, stationId)).slice(0, 150)
+          ])
+        );
 
         state.stations = {
           monthly,
-          rap: genreStations.rap.slice(0, 150),
-          alternative: genreStations.alternative.slice(0, 150),
-          soul: genreStations.soul.slice(0, 150),
-          skate: uniqueTracks(skate).slice(0, 150),
-          wildcard: genreStations.wildcard.slice(0, 150)
+          ...rankedStations
         };
 
-        /*
-          A sparse station is not very useful. Add unmatched tracks only when
-          fewer than five were classified, while avoiding duplicates.
-        */
-        for (const stationId of ["rap", "alternative", "soul"]) {
-          if (state.stations[stationId].length < 5) {
-            const existing = new Set(
-              state.stations[stationId].map((track) => track.id)
-            );
-
-            const fillers = combined.filter(
-              (track) =>
-                !existing.has(track.id) &&
-                !state.stations.wildcard.some(
-                  (wildcardTrack) => wildcardTrack.id === track.id
-                )
-            );
-
-            state.stations[stationId] = uniqueTracks([
-              ...state.stations[stationId],
-              ...fillers
-            ]).slice(0, 75);
+        // A station with barely any records is useless. Fill only with its closest
+        // remaining matches, never random leftovers from an abandoned wildcard bin.
+        for (const stationId of stationIds) {
+          if (state.stations[stationId].length < 20) {
+            const existing = new Set(state.stations[stationId].map((track) => track.id));
+            const closest = combined
+              .map((track, affinityIndex) => ({ track, affinityIndex, score: stationScore(track, genreMap, stationId) }))
+              .filter((item) => !existing.has(item.track.id) && item.score > 0)
+              .sort((a, b) => b.score - a.score || a.affinityIndex - b.affinityIndex)
+              .map((item) => item.track);
+            state.stations[stationId] = uniqueTracks([...state.stations[stationId], ...closest]).slice(0, 75);
           }
         }
 
@@ -1626,8 +1618,10 @@
         button.innerHTML = `
           <span class="number">STATION ${String(index + 1).padStart(2, "0")}</span>
           <span class="count">${tracks.length}</span>
+          <span class="station-frequency">${escapeHtml(station.frequency)} FM</span>
           <strong>${escapeHtml(station.shortName)}</strong>
-          <small>${escapeHtml(station.description)}</small>
+          <small>${escapeHtml(station.slogan)}</small>
+          <span class="station-call-sign">${escapeHtml(station.callSign)}</span>
         `;
 
         button.addEventListener("click", () => selectStation(station.id));
@@ -1652,8 +1646,8 @@
       state.currentIndex = -1;
 
       const station = getStationDefinition(stationId);
-      elements.activeStationName.textContent = station.name;
-      elements.activeStationDescription.textContent = station.description;
+      elements.activeStationName.textContent = `${station.frequency} FM — ${station.name}`;
+      elements.activeStationDescription.textContent = `${station.slogan} ${station.description}`;
 
       document.querySelectorAll(".station-card").forEach((card) => {
         const isActive = card.dataset.stationId === stationId;
